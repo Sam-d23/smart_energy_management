@@ -1,36 +1,50 @@
-import os
-from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
+from app.config import Config, TestingConfig
 
-from .config import Config
-from .tasks.scheduler import start_scheduler
 
 db = SQLAlchemy()
 migrate = Migrate()
 scheduler = BackgroundScheduler()
 
 
-def create_app():
-    app = Flask(__name__)
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-            'DATABASE_URI',
-            'postgresql://user:password@localhost:5432/energy_db'
-    )
-
-    app.config.from_object(Config)
-
+def initialize_extensions(app):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    start_scheduler()
 
-    with app.app_context():
-        from .controllers.energy_controller import energy_bp
-        app.register_blueprint(energy_bp, url_prefix='/api')
+def initialize_scheduler(app):
+    env = app.config.get('ENV', 'development')
+    if env in ['production', 'development']:
+        with app.app_context():
+            from app.tasks.scheduler import start_scheduler
+            start_scheduler()
 
-        from .models.energy import EnergyUsage
+
+def initialize_blueprints(app):
+    from app.controllers.energy_controller import energy_bp
+    app.register_blueprint(energy_bp, url_prefix='/api')
+
+
+def create_app(config_name=None):
+    from flask import Flask
+    from app.config import Config
+
+    app = Flask(__name__)
+
+    if config_name == 'testing':
+        app.config.from_object(TestingConfig)
+    else:  
+        app.config.from_object(config_name or Config)
+
+    # Initialize extensions
+    initialize_extensions(app)
+
+    # Initialize scheduler
+    initialize_scheduler(app)
+
+    # Initialize blueprints
+    initialize_blueprints(app)
 
     return app

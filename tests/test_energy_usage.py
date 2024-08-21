@@ -11,6 +11,7 @@ class EnergyUsageTest(unittest.TestCase):
         self.app = create_app()
         self.app_context = self.app.app_context()
         self.app_context.push()
+        self.client = self.app.test_client()
         db.create_all()
 
     def tearDown(self):
@@ -20,7 +21,7 @@ class EnergyUsageTest(unittest.TestCase):
 
     def test_add_usage(self):
         usage = EnergyUsage(
-                device_id='test_device',
+                device_id=1234,
                 usage=2.5,
                 timestamp=datetime.now()
         )
