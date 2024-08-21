@@ -2,6 +2,8 @@ import unittest
 from app import create_app, db
 from app.models import EnergyUsage
 from app.utils.data_generator import generate_energy_data
+from datetime import datetime
+import random
 
 
 class TestDataGenerator(unittest.TestCase):
@@ -11,30 +13,34 @@ class TestDataGenerator(unittest.TestCase):
         cls.app = create_app('testing')
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
-        cls.client = cls.app.test_client()
-
-    def setUp(self):
         db.create_all()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
 
     @classmethod
     def tearDownClass(cls):
+        db.session.remove()
+        db.drop_all()
         cls.app_context.pop()
-        if scheduler.running:
-            scheduler.shutdown()
 
-    def test_database_commit(self):
-        generate_energy_data()
-        # Check if data was committed to the database
-        self.assertGreater(EnergyUsage.query.count(), 0)
+    def setUp(self):
+        db.session.query(EnergyUsage).delete()
+
+    def tearDown(self):
+        db.session.query(EnergyUsage).delete()
+        db.session.commit()
 
     def test_generate_energy_data(self):
+        # Run the function
         generate_energy_data()
-        # Check if data was generated correctly
-        self.assertGreater(EnergyUsage.query.count(), 0)
+
+        # Check that data was generated
+        records = EnergyUsage.query.all()
+        self.assertEqual(len(records), 504)
+
+        # Verify that records have the expected attributes
+        for record in records:
+            self.assertIsNotNone(record.device_id)
+            self.assertIsInstance(record.usage, float)
+            self.assertIsInstance(record.timestamp, datetime)
 
 
 if __name__ == '__main__':

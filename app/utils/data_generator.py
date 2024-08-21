@@ -22,9 +22,7 @@ def generate_energy_data():
             new_usage = EnergyUsage(
                 device_id=device,
                 usage=usage,
-                timestamp=current_time,
-                temperature=temperature,
-                humidity=humidity
+                timestamp=current_time
             )
 
             db.session.add(new_usage)
