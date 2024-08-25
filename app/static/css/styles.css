@@ -1,0 +1,17 @@
+/* app/static/css/styles.css */
+
+/* Custom styles for the dashboard */
+
+body {
+    padding-top: 70px;
+}
+
+.card-title {
+    font-size: 2rem;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}

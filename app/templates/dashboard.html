@@ -1,0 +1,89 @@
+<!-- app/templates/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+    Dashboard - Smart Energy Management System
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="display-4">Welcome, {{ current_user.username }}!</h1>
+        <p class="lead">Here's an overview of your energy consumption.</p>
+        <hr>
+    </div>
+</div>
+
+<!-- Energy Consumption Summary -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Today's Consumption</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ today_consumption }} kWh</h5>
+                <p class="card-text">Compared to yesterday: {{ consumption_change }}%</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">This Week's Consumption</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ week_consumption }} kWh</h5>
+                <p class="card-text">Average daily consumption: {{ average_daily }} kWh</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Monthly Consumption</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ month_consumption }} kWh</h5>
+                <p class="card-text">Projected monthly bill: ${{ projected_bill }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Energy Consumption Chart -->
+<div class="row">
+    <div class="col-md-12">
+        <canvas id="consumptionChart"></canvas>
+    </div>
+</div>
+
+<!-- Scripts for Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('consumptionChart').getContext('2d');
+    var consumptionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels | safe }},
+            datasets: [{
+                label: 'Energy Consumption (kWh)',
+                data: {{ chart_data | safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor:  'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+</script>
+{% endblock %}
